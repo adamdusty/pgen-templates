@@ -1,0 +1,431 @@
+vars = ["project_name", "project_name_lower", "project_name_upper"]
+
+[[files]]
+path = ".clang-format"
+content = """
+---
+AccessModifierOffset: -4
+AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 120
+CompactNamespaces: false
+IndentWidth: 4
+PointerAlignment: Left
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+"""
+
+[[files]]
+path = ".gitignore"
+content = """
+.idea/
+.vs/
+.vscode/
+build/
+cmake/open-cpp-coverage.cmake
+cmake-build-*/
+prefix/
+CMakeLists.txt.user
+CMakeUserPresets.json
+"""
+
+[[files]]
+path = "CMakeLists.txt"
+content = """
+cmake_minimum_required(VERSION 3.25)
+
+project(
+    {{ project_name_lower }}
+    VERSION 0.1.0
+    DESCRIPTION "A short description"
+    LANGUAGES CXX
+)
+
+include(cmake/variables.cmake)
+
+add_library(
+    {{ project_name_lower }}_{{ project_name_lower }}
+    src/{{ project_name_lower }}.cpp
+)
+add_library({{ project_name_lower }}::{{ project_name_lower }} ALIAS {{ project_name_lower }}_{{ project_name_lower }})
+
+include(GenerateExportHeader)
+generate_export_header(
+    {{ project_name_lower }}_{{ project_name_lower }}
+    BASE_NAME {{ project_name_lower }}
+    EXPORT_FILE_NAME export/{{ project_name_lower }}/{{ project_name_lower }}_export.hpp
+    CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
+)
+
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions({{ project_name_lower }}_{{ project_name_lower }} PUBLIC {{ project_name_upper }}_STATIC_DEFINE)
+endif()
+
+set_target_properties(
+    {{ project_name_lower }}_{{ project_name_lower }} PROPERTIES
+    CXX_VISIBILITY_PRESET "hidden"
+    VISIBILITY_INLINES_HIDDEN YES
+    VERSION "${PROJECT_VERSION}"
+    SOVERSION "${PROJECT_VERSION_MAJOR}"
+    EXPORT_NAME {{ project_name_lower }}
+    OUTPUT_NAME {{ project_name_lower }}
+)
+
+target_include_directories(
+    {{ project_name_lower }}_{{ project_name_lower }} ${warning_guard}
+    PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+)
+
+target_include_directories(
+    {{ project_name_lower }}_{{ project_name_lower }} SYSTEM
+    PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
+)
+
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+  include(cmake/install-rules.cmake)
+endif()
+
+target_compile_options({{ project_name_lower }}_{{ project_name_lower }} PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wconversion
+        -Wsign-conversion
+        -Wcast-qual
+        -Wundef
+        # -Werror=float-equal
+        -Wshadow
+        -Wcast-align
+        -Wunused
+        -Wnull-dereference
+        -Wdouble-promotion
+        -Wimplicit-fallthrough
+        -Woverloaded-virtual
+        -Wnon-virtual-dtor
+        -Wold-style-cast
+    >
+
+    $<$<CXX_COMPILER_ID:MSVC>:
+        /utf-8
+        /w14165
+        /w44242
+        /w44254
+        /w44263
+        /w34265
+        /w34287
+        /w44296
+        /w44365
+        /w44388
+        /w44464
+        /w14545
+        /w14546
+        /w14547
+        /w14549
+        /w14555
+        /w34619
+        /w34640
+        /w24826
+        /w14905
+        /w14928
+        /w45038
+        /w44242
+        /persmissive-
+        /volatile:iso
+        /Zc:preprocessor
+        /Zc:__cplusplus
+        /Zc:externConstexpr
+        /Zc:throwingNew
+        /EHsc
+    >
+)
+
+if({{ project_name_upper }}_TEST)
+    include(CTest)
+    add_subdirectory(tests)
+endif()"""
+
+
+[[files]]
+path = "CMakePresets.json"
+content = """
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "dev-base",
+            "binaryDir": "./build/debug",
+            "hidden": true,
+            "cacheVariables": {
+                "{{ project_name_upper }}_TEST": "ON",
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "CMAKE_BUILD_TYPE": "debug",
+                "BUILD_SHARED_LIBS": "ON"
+            }
+        },
+        {
+            "name": "release-base",
+            "binaryDir": "./build/release",
+            "hidden": true,
+            "cacheVariables": {
+                "{{ project_name_upper }}_TEST": "OFF",
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                "CMAKE_BUILD_TYPE": "release",
+                "BUILD_SHARED_LIBS": "ON"
+            }
+        }
+    ]
+}"""
+
+[[files]]
+path = "CMakeUserPresets.json"
+content = """
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "dev",
+            "inherits": [
+                "dev-base"
+            ],
+            "generator": "Ninja"
+        },
+        {
+            "name": "release",
+            "inherits": [
+                "release-base"
+            ],
+            "generator": "Ninja"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "dev",
+            "configurePreset": "dev"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "dev",
+            "configurePreset": "dev",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}"""
+
+[[files]]
+path = "cmake/install-config.cmake"
+content = 'include("${CMAKE_CURRENT_LIST_DIR}/{{ project_name_lower }}Targets.cmake")'
+
+[[files]]
+path = "cmake/install-rules.cmake"
+content = """
+if(PROJECT_IS_TOP_LEVEL)
+  set(
+      CMAKE_INSTALL_INCLUDEDIR "include/{{ project_name_lower }}-${PROJECT_VERSION}"
+      CACHE PATH ""
+  )
+endif()
+
+set(package {{ project_name_lower }})
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(
+    DIRECTORY
+    include/
+    "${PROJECT_BINARY_DIR}/export/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    COMPONENT {{ project_name_lower }}_Development
+)
+
+install(
+    TARGETS {{ project_name_lower }}_{{ project_name_lower }}
+    EXPORT {{ project_name_lower }}Targets
+    RUNTIME COMPONENT {{ project_name_lower }}_Runtime
+    LIBRARY COMPONENT {{ project_name_lower }}_Runtime
+    NAMELINK_COMPONENT {{ project_name_lower }}_Development
+    ARCHIVE COMPONENT {{ project_name_lower }}_Development
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+write_basic_package_version_file(
+    "${package}ConfigVersion.cmake"
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+# Allow package maintainers to freely override the path for the configs
+set(
+    {{ project_name_lower }}_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
+    CACHE PATH "CMake package config location relative to the install prefix"
+)
+mark_as_advanced({{ project_name_lower }}_INSTALL_CMAKEDIR)
+
+install(
+    FILES cmake/install-config.cmake
+    DESTINATION "${{{ project_name_lower }}_INSTALL_CMAKEDIR}"
+    RENAME "${package}Config.cmake"
+    COMPONENT {{ project_name_lower }}_Development
+)
+
+install(
+    FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
+    DESTINATION "${{{ project_name_lower }}_INSTALL_CMAKEDIR}"
+    COMPONENT {{ project_name_lower }}_Development
+)
+
+install(
+    EXPORT {{ project_name_lower }}Targets
+    NAMESPACE {{ project_name_lower }}::
+    DESTINATION "${{{ project_name_lower }}_INSTALL_CMAKEDIR}"
+    COMPONENT {{ project_name_lower }}_Development
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+  include(CPack)
+endif()"""
+
+
+[[files]]
+path = "cmake/variables.cmake"
+content = """
+
+# ---- Warning guard ----
+
+# target_include_directories with the SYSTEM modifier will request the compiler
+# to omit warnings from the provided paths, if the compiler supports that
+# This is to provide a user experience similar to find_package when
+# add_subdirectory or FetchContent is used to consume this project
+set(warning_guard "")
+if(NOT PROJECT_IS_TOP_LEVEL)
+  option(
+      {{ project_name_lower }}_INCLUDES_WITH_SYSTEM
+      "Use SYSTEM modifier for bare's includes, disabling warnings"
+      ON
+  )
+  mark_as_advanced({{ project_name_lower }}_INCLUDES_WITH_SYSTEM)
+  if({{ project_name_lower }}_INCLUDES_WITH_SYSTEM)
+    set(warning_guard SYSTEM)
+  endif()
+endif()
+"""
+
+[[files]]
+path = "include/{{ project_name_lower }}/{{ project_name_lower }}.hpp"
+content = """
+#pragma once
+
+#include <string>
+
+namespace {{project_name_lower}} {
+
+auto greet() -> std::string;
+
+} // namespace {{ project_name_lower }}"""
+
+[[files]]
+path = "src/{{ project_name_lower }}.cpp"
+content = """
+#include "{{ project_name_lower }}/{{ project_name_lower }}.hpp"
+
+namespace {{ project_name_lower }} {
+
+auto greet() -> std::string {
+    return "Hello from {{ project_name_lower }}";
+}
+
+} // namespace {{project_name_lower}}"""
+
+[[files]]
+path = "tests/CMakeLists.txt"
+content = """
+cmake_minimum_required(VERSION 3.25)
+
+project(
+    {{ project_name_lower }}Tests
+    LANGUAGES CXX
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+    find_package({{ project_name_lower }} REQUIRED)
+    enable_testing()
+endif()
+
+find_package(Catch2 3 REQUIRED)
+
+add_executable({{ project_name_lower }}_tests
+    src/{{ project_name_lower }}_test.cpp
+)
+
+target_link_libraries({{ project_name_lower }}_tests PRIVATE {{ project_name_lower }}::{{ project_name_lower }} Catch2::Catch2WithMain)
+
+add_test(NAME {{ project_name_lower }}_tests COMMAND {{ project_name_lower }}_tests)
+
+# Enable test binary to find the DLL if building a shared lib
+if(BUILD_SHARED_LIBS)
+    set_tests_properties({{ project_name_lower }}_tests PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_append:$<TARGET_FILE_DIR:{{ project_name_lower }}::{{ project_name_lower }}>/"
+    )
+endif()"""
+
+[[files]]
+path = "tests/src/{{ project_name_lower }}_test.cpp"
+content = """
+#include <catch2/catch_test_macros.hpp>
+#include <{{ project_name_lower }}/{{ project_name_lower }}.hpp>
+
+TEST_CASE("Test case", "[greeting]") {
+    REQUIRE({{ project_name_lower }}::greet() == "Hello from {{ project_name_lower }}");
+}"""
