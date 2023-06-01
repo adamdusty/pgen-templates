@@ -276,7 +276,7 @@ content = """
     },
     "configurePresets": [
         {
-            "name": "cmake-debug",
+            "name": "debug-base",
             "hidden": true,
             "binaryDir": "./build/debug",
             "cacheVariables": {
@@ -290,7 +290,7 @@ content = """
             }
         },
         {
-            "name": "cmake-release",
+            "name": "release-base",
             "hidden": true,
             "binaryDir": "./build/release",
             "cacheVariables": {
@@ -321,14 +321,14 @@ content = """
         {
             "name": "dev",
             "inherits": [
-                "cmake-debug"
+                "debug-base"
             ],
             "generator": "Ninja"
         },
         {
             "name": "release",
             "inherits": [
-                "cmake-release"
+                "release-base"
             ],
             "generator": "Ninja"
         }
