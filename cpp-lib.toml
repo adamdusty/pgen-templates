@@ -62,7 +62,7 @@ content = """
 cmake_minimum_required(VERSION 3.25)
 
 project(
-    {{ lower(project_name) }}
+    {* lower(project_name) *}
     VERSION 0.1.0
     DESCRIPTION "A short description"
     LANGUAGES CXX
@@ -71,41 +71,41 @@ project(
 include(cmake/variables.cmake)
 
 add_library(
-    {{ lower(project_name) }}_{{ lower(project_name) }}
-    src/{{ lower(project_name) }}.cpp
+    {* lower(project_name) *}_{* lower(project_name) *}
+    src/{* lower(project_name) *}.cpp
 )
-add_library({{ lower(project_name) }}::{{ lower(project_name) }} ALIAS {{ lower(project_name) }}_{{ lower(project_name) }})
+add_library({* lower(project_name) *}::{* lower(project_name) *} ALIAS {* lower(project_name) *}_{* lower(project_name) *})
 
 include(GenerateExportHeader)
 generate_export_header(
-    {{ lower(project_name) }}_{{ lower(project_name) }}
-    BASE_NAME {{ lower(project_name) }}
-    EXPORT_FILE_NAME export/{{ lower(project_name) }}/{{ lower(project_name) }}_export.hpp
+    {* lower(project_name) *}_{* lower(project_name) *}
+    BASE_NAME {* lower(project_name) *}
+    EXPORT_FILE_NAME export/{* lower(project_name) *}/{* lower(project_name) *}_export.hpp
     CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
 )
 
 if(NOT BUILD_SHARED_LIBS)
-  target_compile_definitions({{ lower(project_name) }}_{{ lower(project_name) }} PUBLIC {{ upper(project_name) }}_STATIC_DEFINE)
+  target_compile_definitions({* lower(project_name) *}_{* lower(project_name) *} PUBLIC {* upper(project_name) *}_STATIC_DEFINE)
 endif()
 
 set_target_properties(
-    {{ lower(project_name) }}_{{ lower(project_name) }} PROPERTIES
+    {* lower(project_name) *}_{* lower(project_name) *} PROPERTIES
     CXX_VISIBILITY_PRESET "hidden"
     VISIBILITY_INLINES_HIDDEN YES
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PROJECT_VERSION_MAJOR}"
-    EXPORT_NAME {{ lower(project_name) }}
-    OUTPUT_NAME {{ lower(project_name) }}
+    EXPORT_NAME {* lower(project_name) *}
+    OUTPUT_NAME {* lower(project_name) *}
 )
 
 target_include_directories(
-    {{ lower(project_name) }}_{{ lower(project_name) }} ${warning_guard}
+    {* lower(project_name) *}_{* lower(project_name) *} ${warning_guard}
     PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
 target_include_directories(
-    {{ lower(project_name) }}_{{ lower(project_name) }} SYSTEM
+    {* lower(project_name) *}_{* lower(project_name) *} SYSTEM
     PUBLIC
     "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
 )
@@ -114,7 +114,7 @@ if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
 endif()
 
-target_compile_options({{ lower(project_name) }}_{{ lower(project_name) }} PRIVATE
+target_compile_options({* lower(project_name) *}_{* lower(project_name) *} PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
         -Wall
         -Wextra
@@ -169,7 +169,7 @@ target_compile_options({{ lower(project_name) }}_{{ lower(project_name) }} PRIVA
     >
 )
 
-if({{ upper(project_name) }}_TEST)
+if({* upper(project_name) *}_TEST)
     include(CTest)
     add_subdirectory(tests)
 endif()"""
@@ -191,7 +191,7 @@ content = """
             "binaryDir": "./build/debug",
             "hidden": true,
             "cacheVariables": {
-                "{{ upper(project_name) }}_TEST": "ON",
+                "{* upper(project_name) *}_TEST": "ON",
                 "CMAKE_CXX_EXTENSIONS": "OFF",
                 "CMAKE_CXX_STANDARD": "20",
                 "CMAKE_COLOR_DIAGNOSTICS": "ON",
@@ -205,7 +205,7 @@ content = """
             "binaryDir": "./build/release",
             "hidden": true,
             "cacheVariables": {
-                "{{ upper(project_name) }}_TEST": "OFF",
+                "{* upper(project_name) *}_TEST": "OFF",
                 "CMAKE_CXX_EXTENSIONS": "OFF",
                 "CMAKE_CXX_STANDARD": "20",
                 "CMAKE_COLOR_DIAGNOSTICS": "ON",
@@ -266,19 +266,19 @@ content = """
 
 [[files]]
 path = "cmake/install-config.cmake"
-content = 'include("${CMAKE_CURRENT_LIST_DIR}/{{ lower(project_name) }}Targets.cmake")'
+content = 'include("${CMAKE_CURRENT_LIST_DIR}/{* lower(project_name) *}Targets.cmake")'
 
 [[files]]
 path = "cmake/install-rules.cmake"
 content = """
 if(PROJECT_IS_TOP_LEVEL)
   set(
-      CMAKE_INSTALL_INCLUDEDIR "include/{{ lower(project_name) }}-${PROJECT_VERSION}"
+      CMAKE_INSTALL_INCLUDEDIR "include/{* lower(project_name) *}-${PROJECT_VERSION}"
       CACHE PATH ""
   )
 endif()
 
-set(package {{ lower(project_name) }})
+set(package {* lower(project_name) *})
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
@@ -287,16 +287,16 @@ install(
     include/
     "${PROJECT_BINARY_DIR}/export/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT {{ lower(project_name) }}_Development
+    COMPONENT {* lower(project_name) *}_Development
 )
 
 install(
-    TARGETS {{ lower(project_name) }}_{{ lower(project_name) }}
-    EXPORT {{ lower(project_name) }}Targets
-    RUNTIME COMPONENT {{ lower(project_name) }}_Runtime
-    LIBRARY COMPONENT {{ lower(project_name) }}_Runtime
-    NAMELINK_COMPONENT {{ lower(project_name) }}_Development
-    ARCHIVE COMPONENT {{ lower(project_name) }}_Development
+    TARGETS {* lower(project_name) *}_{* lower(project_name) *}
+    EXPORT {* lower(project_name) *}Targets
+    RUNTIME COMPONENT {* lower(project_name) *}_Runtime
+    LIBRARY COMPONENT {* lower(project_name) *}_Runtime
+    NAMELINK_COMPONENT {* lower(project_name) *}_Development
+    ARCHIVE COMPONENT {* lower(project_name) *}_Development
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
@@ -308,29 +308,29 @@ write_basic_package_version_file(
 
 # Allow package maintainers to freely override the path for the configs
 set(
-    {{ lower(project_name) }}_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
+    {* lower(project_name) *}_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
     CACHE PATH "CMake package config location relative to the install prefix"
 )
-mark_as_advanced({{ lower(project_name) }}_INSTALL_CMAKEDIR)
+mark_as_advanced({* lower(project_name) *}_INSTALL_CMAKEDIR)
 
 install(
     FILES cmake/install-config.cmake
-    DESTINATION "${{{ lower(project_name) }}_INSTALL_CMAKEDIR}"
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
     RENAME "${package}Config.cmake"
-    COMPONENT {{ lower(project_name) }}_Development
+    COMPONENT {* lower(project_name) *}_Development
 )
 
 install(
     FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
-    DESTINATION "${{{ lower(project_name) }}_INSTALL_CMAKEDIR}"
-    COMPONENT {{ lower(project_name) }}_Development
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
+    COMPONENT {* lower(project_name) *}_Development
 )
 
 install(
-    EXPORT {{ lower(project_name) }}Targets
-    NAMESPACE {{ lower(project_name) }}::
-    DESTINATION "${{{ lower(project_name) }}_INSTALL_CMAKEDIR}"
-    COMPONENT {{ lower(project_name) }}_Development
+    EXPORT {* lower(project_name) *}Targets
+    NAMESPACE {* lower(project_name) *}::
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
+    COMPONENT {* lower(project_name) *}_Development
 )
 
 if(PROJECT_IS_TOP_LEVEL)
@@ -351,42 +351,42 @@ content = """
 set(warning_guard "")
 if(NOT PROJECT_IS_TOP_LEVEL)
   option(
-      {{ lower(project_name) }}_INCLUDES_WITH_SYSTEM
+      {* lower(project_name) *}_INCLUDES_WITH_SYSTEM
       "Use SYSTEM modifier for bare's includes, disabling warnings"
       ON
   )
-  mark_as_advanced({{ lower(project_name) }}_INCLUDES_WITH_SYSTEM)
-  if({{ lower(project_name) }}_INCLUDES_WITH_SYSTEM)
+  mark_as_advanced({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
+  if({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
     set(warning_guard SYSTEM)
   endif()
 endif()
 """
 
 [[files]]
-path = "include/{{ lower(project_name) }}/{{ lower(project_name) }}.hpp"
+path = "include/{* lower(project_name) *}/{* lower(project_name) *}.hpp"
 content = """
 #pragma once
 
 #include <string>
 
-namespace {{lower(project_name)}} {
+namespace {*lower(project_name)*} {
 
 auto greet() -> std::string;
 
-} // namespace {{ lower(project_name) }}"""
+} // namespace {* lower(project_name) *}"""
 
 [[files]]
-path = "src/{{ lower(project_name) }}.cpp"
+path = "src/{* lower(project_name) *}.cpp"
 content = """
-#include "{{ lower(project_name) }}/{{ lower(project_name) }}.hpp"
+#include "{* lower(project_name) *}/{* lower(project_name) *}.hpp"
 
-namespace {{ lower(project_name) }} {
+namespace {* lower(project_name) *} {
 
 auto greet() -> std::string {
-    return "Hello from {{ lower(project_name) }}";
+    return "Hello from {* lower(project_name) *}";
 }
 
-} // namespace {{lower(project_name)}}"""
+} // namespace {*lower(project_name)*}"""
 
 [[files]]
 path = "tests/CMakeLists.txt"
@@ -394,38 +394,38 @@ content = """
 cmake_minimum_required(VERSION 3.25)
 
 project(
-    {{ lower(project_name) }}Tests
+    {* lower(project_name) *}Tests
     LANGUAGES CXX
 )
 
 if(PROJECT_IS_TOP_LEVEL)
-    find_package({{ lower(project_name) }} REQUIRED)
+    find_package({* lower(project_name) *} REQUIRED)
     enable_testing()
 endif()
 
 find_package(Catch2 3 REQUIRED)
 
-add_executable({{ lower(project_name) }}_tests
-    src/{{ lower(project_name) }}_test.cpp
+add_executable({* lower(project_name) *}_tests
+    src/{* lower(project_name) *}_test.cpp
 )
 
-target_link_libraries({{ lower(project_name) }}_tests PRIVATE {{ lower(project_name) }}::{{ lower(project_name) }} Catch2::Catch2WithMain)
+target_link_libraries({* lower(project_name) *}_tests PRIVATE {* lower(project_name) *}::{* lower(project_name) *} Catch2::Catch2WithMain)
 
-add_test(NAME {{ lower(project_name) }}_tests COMMAND {{ lower(project_name) }}_tests)
+add_test(NAME {* lower(project_name) *}_tests COMMAND {* lower(project_name) *}_tests)
 
 # Enable test binary to find the DLL if building a shared lib
 if(BUILD_SHARED_LIBS)
-    set_tests_properties({{ lower(project_name) }}_tests PROPERTIES
-        ENVIRONMENT_MODIFICATION "PATH=path_list_append:$<TARGET_FILE_DIR:{{ lower(project_name) }}::{{ lower(project_name) }}>/"
+    set_tests_properties({* lower(project_name) *}_tests PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_append:$<TARGET_FILE_DIR:{* lower(project_name) *}::{* lower(project_name) *}>/"
     )
 endif()"""
 
 [[files]]
-path = "tests/src/{{ lower(project_name) }}_test.cpp"
+path = "tests/src/{* lower(project_name) *}_test.cpp"
 content = """
 #include <catch2/catch_test_macros.hpp>
-#include <{{ lower(project_name) }}/{{ lower(project_name) }}.hpp>
+#include <{* lower(project_name) *}/{* lower(project_name) *}.hpp>
 
 TEST_CASE("Test case", "[greeting]") {
-    REQUIRE({{ lower(project_name) }}::greet() == "Hello from {{ lower(project_name) }}");
+    REQUIRE({* lower(project_name) *}::greet() == "Hello from {* lower(project_name) *}");
 }"""
