@@ -1,0 +1,612 @@
+vars = ["namespace", "project_name"]
+
+[[files]]
+path = ".clangformat"
+content = """
+---
+AccessModifierOffset: -4
+AlignConsecutiveAssignments: true
+AlignTrailingComments: true
+AllowAllConstructorInitializersOnNextLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLambdasOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBraces: Attach
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: AfterColon
+ColumnLimit: 120
+CompactNamespaces: false
+IndentWidth: 4
+PointerAlignment: Left
+SortIncludes: true
+SortUsingDeclarations: true
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+"""
+[[files]]
+path = ".clang-tidy"
+content = """
+---
+# Enable ALL the things! Except not really
+# misc-non-private-member-variables-in-classes: the options don't do anything
+# modernize-use-nodiscard: too aggressive, attribute is situationally useful
+Checks: "*,\\
+  -google-readability-todo,\\
+  -altera-*,\\
+  -fuchsia-*,\\
+  fuchsia-multiple-inheritance,\\
+  -llvm-header-guard,\\
+  -llvm-include-order,\\
+  -llvmlibc-*,\\
+  -modernize-use-nodiscard,\\
+  -misc-non-private-member-variables-in-classes"
+WarningsAsErrors: ''
+CheckOptions:
+  - key: 'bugprone-argument-comment.StrictMode'
+    value: 'true'
+# Prefer using enum classes with 2 values for parameters instead of bools
+  - key: 'bugprone-argument-comment.CommentBoolLiterals'
+    value: 'true'
+  - key: 'bugprone-misplaced-widening-cast.CheckImplicitCasts'
+    value: 'true'
+  - key: 'bugprone-sizeof-expression.WarnOnSizeOfIntegerExpression'
+    value: 'true'
+  - key: 'bugprone-suspicious-string-compare.WarnOnLogicalNotComparison'
+    value: 'true'
+  - key: 'readability-simplify-boolean-expr.ChainedConditionalReturn'
+    value: 'true'
+  - key: 'readability-simplify-boolean-expr.ChainedConditionalAssignment'
+    value: 'true'
+  - key: 'readability-uniqueptr-delete-release.PreferResetCall'
+    value: 'true'
+  - key: 'cppcoreguidelines-init-variables.MathHeader'
+    value: '<cmath>'
+  - key: 'cppcoreguidelines-narrowing-conversions.PedanticMode'
+    value: 'true'
+  - key: 'readability-else-after-return.WarnOnUnfixable'
+    value: 'true'
+  - key: 'readability-else-after-return.WarnOnConditionVariables'
+    value: 'true'
+  - key: 'readability-inconsistent-declaration-parameter-name.Strict'
+    value: 'true'
+  - key: 'readability-qualified-auto.AddConstToQualified'
+    value: 'true'
+  - key: 'readability-redundant-access-specifiers.CheckFirstDeclaration'
+    value: 'true'
+# These seem to be the most common identifier styles
+  - key: 'readability-identifier-naming.AbstractClassCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ClassCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ClassConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ClassMemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ClassMethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstantMemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstantParameterCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstantPointerParameterCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstexprFunctionCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstexprMethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ConstexprVariableCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.EnumCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.EnumConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.FunctionCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.GlobalConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.GlobalConstantPointerCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.GlobalFunctionCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.GlobalPointerCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.GlobalVariableCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.InlineNamespaceCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.LocalConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.LocalConstantPointerCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.LocalPointerCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.LocalVariableCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.MacroDefinitionCase'
+    value: 'UPPER_CASE'
+  - key: 'readability-identifier-naming.MemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.MethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.NamespaceCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ParameterCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ParameterPackCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.PointerParameterCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.PrivateMemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.PrivateMemberPrefix'
+    value: 'm_'
+  - key: 'readability-identifier-naming.PrivateMethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ProtectedMemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ProtectedMemberPrefix'
+    value: 'm_'
+  - key: 'readability-identifier-naming.ProtectedMethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.PublicMemberCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.PublicMethodCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ScopedEnumConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.StaticConstantCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.StaticVariableCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.StructCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.TemplateParameterCase'
+    value: 'CamelCase'
+  - key: 'readability-identifier-naming.TemplateTemplateParameterCase'
+    value: 'CamelCase'
+  - key: 'readability-identifier-naming.TypeAliasCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.TypedefCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.TypeTemplateParameterCase'
+    value: 'CamelCase'
+  - key: 'readability-identifier-naming.UnionCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.ValueTemplateParameterCase'
+    value: 'CamelCase'
+  - key: 'readability-identifier-naming.VariableCase'
+    value: 'lower_case'
+  - key: 'readability-identifier-naming.VirtualMethodCase'
+    value: 'lower_case'
+  - key: readability-identifier-naming.TypeTemplateParameterIgnoredRegexp
+    value: expr-type
+"""
+
+[[files]]
+path = ".gitignore"
+content = """
+.idea/
+.vs/
+.vscode/
+build/
+cmake/open-cpp-coverage.cmake
+cmake-build-*/
+prefix/
+CMakeLists.txt.user
+CMakeUserPresets.json
+"""
+
+[[files]]
+path = "CMakeLists.txt"
+content = """
+cmake_minimum_required(VERSION 3.27)
+
+project(
+    {* lower(project_name) *}
+    VERSION 0.1.0
+    DESCRIPTION "A short description"
+    LANGUAGES CXX
+)
+
+include(cmake/variables.cmake)
+
+# Declare library
+
+add_library(
+    {* lower(namespace) *}_{* lower(project_name) *}
+    src/{* lower(project_name) *}.cpp
+)
+add_library({* lower(namespace) *}::{* lower(project_name) *} ALIAS {* lower(namespace) *}_{* lower(project_name) *})
+
+include(cmake/compile-options.cmake)
+
+include(GenerateExportHeader)
+generate_export_header(
+    {* lower(namespace) *}_{* lower(project_name) *}
+    BASE_NAME {* lower(project_name) *}
+    EXPORT_FILE_NAME export/{* lower(namespace) *}/{* lower(project_name) *}/export.hpp
+    CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
+)
+
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions({* lower(namespace) *}_{* lower(project_name) *} PUBLIC {* lower(project_name) *}_STATIC_DEFINE)
+endif()
+
+set_target_properties(
+    {* lower(namespace) *}_{* lower(project_name) *} PROPERTIES
+    CXX_VISIBILITY_PRESET "hidden"
+    VISIBILITY_INLINES_HIDDEN YES
+    VERSION "${PROJECT_VERSION}"
+    SOVERSION "${PROJECT_VERSION_MAJOR}"
+    EXPORT_NAME {* lower(project_name) *}
+    OUTPUT_NAME {* lower(project_name) *}
+)
+
+target_include_directories(
+    {* lower(namespace) *}_{* lower(project_name) *} ${warning_guard}
+    PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+)
+
+target_include_directories(
+    {* lower(namespace) *}_{* lower(project_name) *} SYSTEM
+    PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
+)
+
+# Tests
+if({* upper(project_name) *}_BUILD_TESTS)
+    include(CTest)
+    add_subdirectory(tests)
+endif()
+
+# Install rules
+
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+  include(cmake/install-rules.cmake)
+endif()
+"""
+
+[[files]]
+path = "cmake/compile-options.cmake"
+content = """
+target_compile_options({* lower(namespace) *}_{* lower(project_name) *} PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -U_FORTIFY_SOURCE
+        -D_FORTIFY_SOURCE=3
+        -fstack-protector-strong
+        -fcf-protection=full
+        -fstack-clash-protection
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wconversion
+        -Wsign-conversion
+        -Wcast-qual
+        -Wformat=2
+        -Wundef
+        -Werror=float-equal
+        -Wshadow
+        -Wcast-align
+        -Wunused
+        -Wnull-dereference
+        -Wdouble-promotion
+        -Wimplicit-fallthrough
+        -Wextra-semi
+        -Woverloaded-virtual
+        -Wnon-virtual-dtor
+        -Wold-style-cast>
+        
+    $<$<CXX_COMPILER_ID:MSVC>:
+        /sdl
+        /guard:cf
+        /utf-8
+        /diagnostics:caret
+        /w14165
+        /w44242
+        /w44254
+        /w44263
+        /w34265
+        /w34287
+        /w44296
+        /w44365
+        /w44388
+        /w44464
+        /w14545
+        /w14546
+        /w14547
+        /w14549
+        /w14555
+        /w34619
+        /w34640
+        /w24826
+        /w14905
+        /w14906
+        /w14928
+        /w45038
+        /W4
+        /permissive-
+        /volatile:iso
+        /Zc:inline
+        /Zc:preprocessor
+        /Zc:enumTypes
+        /Zc:lambda
+        /Zc:__cplusplus
+        /Zc:externConstexpr
+        /Zc:throwingNew
+        /EHsc>
+)
+"""
+
+[[files]]
+path = "CMakePresets.json"
+content = """
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 27,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_CXX_EXTENSIONS": "OFF",
+                "CMAKE_CXX_STANDARD": "20",
+                "CMAKE_COLOR_DIAGNOSTICS": "ON"
+            }
+        },
+        {
+            "name": "debug",
+            "binaryDir": "./build/debug",
+            "inherits": [
+                "base"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "debug"
+            }
+        },
+        {
+            "name": "release",
+            "binaryDir": "./build/release",
+            "inherits": [
+                "base"
+            ],
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "release"
+            }
+        },
+        {
+            "name": "dev",
+            "inherits": [
+                "debug"
+            ],
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "{* upper(project_name) *}_BUILD_TESTS": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "dev",
+            "configurePreset": "dev"
+        },
+        {
+            "name": "debug",
+            "configurePreset": "debug"
+        },
+        {
+            "name": "release",
+            "configurePreset": "release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "dev",
+            "configurePreset": "dev",
+            "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
+    ]
+}
+"""
+
+[[files]]
+path = "cmake/install-config.cmake"
+content = """
+include("${CMAKE_CURRENT_LIST_DIR}/{* lower(project_name) *}Targets.cmake")
+"""
+
+[[files]]
+path = "cmake/install-rules.cmake"
+content = """
+if(PROJECT_IS_TOP_LEVEL)
+  set(
+      CMAKE_INSTALL_INCLUDEDIR "include/{* lower(project_name) *}-${PROJECT_VERSION}"
+      CACHE PATH ""
+  )
+endif()
+
+set(package {* lower(project_name) *})
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+install(
+    DIRECTORY
+    include/
+    "${PROJECT_BINARY_DIR}/export/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    COMPONENT {* lower(project_name) *}_Development
+)
+
+install(
+    TARGETS {* lower(namespace) *}_{* lower(project_name) *}
+    EXPORT {* lower(project_name) *}Targets
+    RUNTIME COMPONENT {* lower(project_name) *}_Runtime
+    LIBRARY COMPONENT {* lower(project_name) *}_Runtime
+    NAMELINK_COMPONENT {* lower(project_name) *}_Development
+    ARCHIVE COMPONENT {* lower(project_name) *}_Development
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+write_basic_package_version_file(
+    "${package}ConfigVersion.cmake"
+    VERSION ${PACKAGE_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+# Allow package maintainers to freely override the path for the configs
+set(
+    {* lower(project_name) *}_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
+    CACHE PATH "CMake package config location relative to the install prefix"
+)
+mark_as_advanced({* lower(project_name) *}_INSTALL_CMAKEDIR)
+
+install(
+    FILES cmake/install-config.cmake
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
+    RENAME "${package}Config.cmake"
+    COMPONENT {* lower(project_name) *}_Development
+)
+
+install(
+    FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
+    COMPONENT {* lower(project_name) *}_Development
+)
+
+install(
+    EXPORT {* lower(project_name) *}Targets
+    NAMESPACE {* lower(namespace) *}::
+    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
+    COMPONENT {* lower(project_name) *}_Development
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+  include(CPack)
+endif()
+"""
+
+[[files]]
+path = "cmake/variables.cmake"
+content = """
+# ---- Warning guard ----
+
+# target_include_directories with the SYSTEM modifier will request the compiler
+# to omit warnings from the provided paths, if the compiler supports that
+# This is to provide a user experience similar to find_package when
+# add_subdirectory or FetchContent is used to consume this project
+set(warning_guard "")
+if(NOT PROJECT_IS_TOP_LEVEL)
+  option(
+      {* lower(project_name) *}_INCLUDES_WITH_SYSTEM
+      "Use SYSTEM modifier for bare's includes, disabling warnings"
+      ON
+  )
+  mark_as_advanced({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
+  if({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
+    set(warning_guard SYSTEM)
+  endif()
+endif()
+"""
+
+[[files]]
+path = "include/{* lower(namespace) *}/{* lower(project_name) *}.hpp"
+content = """
+#pragma once
+
+#include <string>
+
+namespace {*lower(project_name)*} {
+
+auto greet() -> std::string;
+
+} // namespace {* lower(project_name) *}"""
+
+[[files]]
+path = "src/{* lower(project_name) *}.cpp"
+content = """
+#include "{* lower(namespace) *}/{* lower(project_name) *}.hpp"
+
+namespace {* lower(project_name) *} {
+
+auto greet() -> std::string {
+    return "Hello from {* lower(project_name) *}";
+}
+
+} // namespace {*lower(project_name)*}"""
+
+[[files]]
+path = "tests/CMakeLists.txt"
+content = """
+cmake_minimum_required(VERSION 3.27)
+
+project(
+    {* lower(project_name) *}Tests
+    LANGUAGES CXX
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+    find_package({* lower(project_name) *} REQUIRED)
+    enable_testing()
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    snitch
+    GIT_REPOSITORY https://github.com/cschreib/snitch.git
+    GIT_TAG        v1.2.2
+    FIND_PACKAGE_ARGS
+)
+FetchContent_MakeAvailable(snitch)
+
+add_executable({* lower(project_name) *}_tests
+    src/{* lower(project_name) *}_test.cpp
+)
+
+target_link_libraries({* lower(project_name) *}_tests PRIVATE {* lower(namespace) *}::{* lower(project_name) *} snitch::snitch)
+
+add_test(NAME {* lower(project_name) *}_tests COMMAND {* lower(project_name) *}_tests)
+
+# Enable test binary to find the DLL if building a shared lib
+if(BUILD_SHARED_LIBS)
+    set_tests_properties({* lower(project_name) *}_tests PROPERTIES
+        ENVIRONMENT_MODIFICATION "PATH=path_list_append:$<TARGET_FILE_DIR:{* lower(namespace) *}::{* lower(project_name) *}>/"
+    )
+endif()"""
+
+[[files]]
+path = "tests/src/{* lower(project_name) *}_test.cpp"
+content = """
+#include <snitch/snitch.hpp>
+#include <{* lower(namespace) *}/{* lower(project_name) *}.hpp>
+
+TEST_CASE("Test case", "[greeting]") {
+    REQUIRE({* lower(project_name) *}::greet() == "Hello from {* lower(project_name) *}");
+}
+"""
