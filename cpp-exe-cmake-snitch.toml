@@ -1,7 +1,120 @@
-vars = ["namespace", "project_name"]
+vars = ["project_name"]
 
 [[files]]
-path = ".clangformat"
+path = "cmake/install-config.cmake"
+content = """include("${CMAKE_CURRENT_LIST_DIR}/{* lower(project_name) *}Targets.cmake")"""
+
+[[files]]
+path = "cmake/install-rules.cmake"
+content = """install(
+    TARGETS {* lower(project_name) *}_exe
+    RUNTIME COMPONENT {* lower(project_name) *}_Runtime
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+  include(CPack)
+endif()
+"""
+
+[[files]]
+path = "cmake/variables.cmake"
+content = """
+# ---- Warning guard ----
+
+# target_include_directories with the SYSTEM modifier will request the compiler
+# to omit warnings from the provided paths, if the compiler supports that
+# This is to provide a user experience similar to find_package when
+# add_subdirectory or FetchContent is used to consume this project
+set(warning_guard "")
+if(NOT PROJECT_IS_TOP_LEVEL)
+  option(
+      {* lower(project_name) *}_INCLUDES_WITH_SYSTEM
+      "Use SYSTEM modifier for bare's includes, disabling warnings"
+      ON
+  )
+  mark_as_advanced({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
+  if({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
+    set(warning_guard SYSTEM)
+  endif()
+endif()
+"""
+
+[[files]]
+path = "src/lib.hpp"
+content = """#pragma once
+#include <string>
+
+namespace {* lower(project_name) *}{
+
+auto greeting() -> std::string;
+
+}
+"""
+
+[[files]]
+path = "src/lib.cpp"
+content = """#include "lib.hpp"
+
+namespace {* lower(project_name) *} {
+
+auto greeting() -> std::string { return "hello from lib"; }
+}
+"""
+
+[[files]]
+path = "src/main.cpp"
+content = """#include "lib.hpp"
+
+auto main(int, char**) -> int {
+    return 0;
+}
+"""
+
+[[files]]
+path = "tests/CMakeLists.txt"
+content = """cmake_minimum_required(VERSION 3.25)
+
+project(
+    {* lower(project_name) *}Tests
+    LANGUAGES CXX
+)
+
+if(PROJECT_IS_TOP_LEVEL)
+    find_package({* lower(project_name) *} REQUIRED)
+    enable_testing()
+endif()
+
+include(FetchContent)
+FetchContent_Declare(
+    snitch
+    GIT_REPOSITORY https://github.com/cschreib/snitch.git
+    GIT_TAG        v1.2.2
+    FIND_PACKAGE_ARGS
+)
+FetchContent_MakeAvailable(snitch)
+
+add_executable({* lower(project_name) *}_tests
+    src/{* lower(project_name) *}_test.cpp
+)
+
+target_link_libraries({* lower(project_name) *}_tests PRIVATE {* lower(project_name) *}_lib snitch::snitch)
+
+add_test(NAME {* lower(project_name) *}_tests COMMAND {* lower(project_name) *}_tests)
+"""
+
+[[files]]
+path = "tests/src/{* lower(project_name) *}_test.cpp"
+content = """
+#include "lib.hpp"
+#include <snitch/snitch.hpp>
+
+TEST_CASE("Greeting", "[lib]") {
+CHECK({*lower(project_name)*}::greeting() == "hello from lib");
+}
+"""
+
+[[files]]
+path = ".clang-format"
 content = """
 ---
 AccessModifierOffset: -4
@@ -221,9 +334,18 @@ CMakeUserPresets.json
 """
 
 [[files]]
+path = "cmake/compile-options.cmake"
+content = """
+target_compile_options({* lower(project_name) *}_exe PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fstack-protector-strong -fcf-protection=full -fstack-clash-protection -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Werror=float-equal -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion -Wimplicit-fallthrough -Wextra-semi -Woverloaded-virtual -Wnon-virtual-dtor -Wold-style-cast>
+    $<$<CXX_COMPILER_ID:MSVC>: /sdl /guard:cf /utf-8 /diagnostics:caret /w14165 /w44242 /w44254 /w44263 /w34265 /w34287 /w44296 /w44365 /w44388 /w44464 /w14545 /w14546 /w14547 /w14549 /w14555 /w34619 /w34640 /w24826 /w14905 /w14906 /w14928 /w45038 /W4 /permissive- /volatile:iso /Zc:inline /Zc:preprocessor /Zc:enumTypes /Zc:lambda /Zc:__cplusplus /Zc:externConstexpr /Zc:throwingNew /EHsc>
+)
+"""
+
+[[files]]
 path = "CMakeLists.txt"
 content = """
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.25)
 
 project(
     {* lower(project_name) *}
@@ -234,70 +356,39 @@ project(
 
 include(cmake/variables.cmake)
 
-# Declare library
-
 add_library(
-    {* lower(namespace) *}_{* lower(project_name) *}
-    src/{* lower(project_name) *}.cpp
+    {* lower(project_name) *}_lib OBJECT
+    src/lib.cpp
 )
-add_library({* lower(namespace) *}::{* lower(project_name) *} ALIAS {* lower(namespace) *}_{* lower(project_name) *})
+
+target_include_directories(
+    {* lower(project_name) *}_lib ${warning_guard}
+    PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+)
+
+add_executable(
+    {* lower(project_name) *}_exe
+    src/main.cpp
+)
 
 include(cmake/compile-options.cmake)
 
-include(GenerateExportHeader)
-generate_export_header(
-    {* lower(namespace) *}_{* lower(project_name) *}
-    BASE_NAME {* lower(project_name) *}
-    EXPORT_FILE_NAME export/{* lower(namespace) *}/{* lower(project_name) *}/export.hpp
-    CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
-)
-
-if(NOT BUILD_SHARED_LIBS)
-  target_compile_definitions({* lower(namespace) *}_{* lower(project_name) *} PUBLIC {* lower(project_name) *}_STATIC_DEFINE)
-endif()
+target_link_libraries({* lower(project_name) *}_exe PRIVATE {* lower(project_name) *}_lib)
 
 set_target_properties(
-    {* lower(namespace) *}_{* lower(project_name) *} PROPERTIES
-    CXX_VISIBILITY_PRESET "hidden"
-    VISIBILITY_INLINES_HIDDEN YES
-    VERSION "${PROJECT_VERSION}"
-    SOVERSION "${PROJECT_VERSION_MAJOR}"
-    EXPORT_NAME {* lower(project_name) *}
+    {* lower(project_name) *}_exe PROPERTIES
     OUTPUT_NAME {* lower(project_name) *}
 )
-
-target_include_directories(
-    {* lower(namespace) *}_{* lower(project_name) *} ${warning_guard}
-    PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-)
-
-target_include_directories(
-    {* lower(namespace) *}_{* lower(project_name) *} SYSTEM
-    PUBLIC
-    "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/export>"
-)
-
-# Tests
-if({* upper(project_name) *}_BUILD_TESTS)
-    include(CTest)
-    add_subdirectory(tests)
-endif()
-
-# Install rules
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
 endif()
-"""
 
-[[files]]
-path = "cmake/compile-options.cmake"
-content = """
-target_compile_options({* lower(namespace) *}_{* lower(project_name) *} PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -fstack-protector-strong -fcf-protection=full -fstack-clash-protection -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Werror=float-equal -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion -Wimplicit-fallthrough -Wextra-semi -Woverloaded-virtual -Wnon-virtual-dtor -Wold-style-cast>
-    $<$<CXX_COMPILER_ID:MSVC>: /sdl /guard:cf /utf-8 /diagnostics:caret /w14165 /w44242 /w44254 /w44263 /w34265 /w34287 /w44296 /w44365 /w44388 /w44464 /w14545 /w14546 /w14547 /w14549 /w14555 /w34619 /w34640 /w24826 /w14905 /w14906 /w14928 /w45038 /W4 /permissive- /volatile:iso /Zc:inline /Zc:preprocessor /Zc:enumTypes /Zc:lambda /Zc:__cplusplus /Zc:externConstexpr /Zc:throwingNew /EHsc>
-)
+if({* upper(project_name) *}__BUILD_TESTS)
+    include(CTest)
+    add_subdirectory(tests)
+endif()
 """
 
 [[files]]
@@ -375,180 +466,5 @@ content = """
             }
         }
     ]
-}
-"""
-
-[[files]]
-path = "cmake/install-config.cmake"
-content = """
-include("${CMAKE_CURRENT_LIST_DIR}/{* lower(project_name) *}Targets.cmake")
-"""
-
-[[files]]
-path = "cmake/install-rules.cmake"
-content = """
-if(PROJECT_IS_TOP_LEVEL)
-  set(
-      CMAKE_INSTALL_INCLUDEDIR "include/{* lower(project_name) *}-${PROJECT_VERSION}"
-      CACHE PATH ""
-  )
-endif()
-
-set(package {* lower(project_name) *})
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-
-install(
-    DIRECTORY
-    include/
-    "${PROJECT_BINARY_DIR}/export/"
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT {* lower(project_name) *}_Development
-)
-
-install(
-    TARGETS {* lower(namespace) *}_{* lower(project_name) *}
-    EXPORT {* lower(project_name) *}Targets
-    RUNTIME COMPONENT {* lower(project_name) *}_Runtime
-    LIBRARY COMPONENT {* lower(project_name) *}_Runtime
-    NAMELINK_COMPONENT {* lower(project_name) *}_Development
-    ARCHIVE COMPONENT {* lower(project_name) *}_Development
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-
-write_basic_package_version_file(
-    "${package}ConfigVersion.cmake"
-    VERSION ${PACKAGE_VERSION}
-    COMPATIBILITY SameMajorVersion
-)
-
-# Allow package maintainers to freely override the path for the configs
-set(
-    {* lower(project_name) *}_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/${package}"
-    CACHE PATH "CMake package config location relative to the install prefix"
-)
-mark_as_advanced({* lower(project_name) *}_INSTALL_CMAKEDIR)
-
-install(
-    FILES cmake/install-config.cmake
-    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
-    RENAME "${package}Config.cmake"
-    COMPONENT {* lower(project_name) *}_Development
-)
-
-install(
-    FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
-    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
-    COMPONENT {* lower(project_name) *}_Development
-)
-
-install(
-    EXPORT {* lower(project_name) *}Targets
-    NAMESPACE {* lower(namespace) *}::
-    DESTINATION "${{* lower(project_name) *}_INSTALL_CMAKEDIR}"
-    COMPONENT {* lower(project_name) *}_Development
-)
-
-if(PROJECT_IS_TOP_LEVEL)
-  include(CPack)
-endif()
-"""
-
-[[files]]
-path = "cmake/variables.cmake"
-content = """
-# ---- Warning guard ----
-
-# target_include_directories with the SYSTEM modifier will request the compiler
-# to omit warnings from the provided paths, if the compiler supports that
-# This is to provide a user experience similar to find_package when
-# add_subdirectory or FetchContent is used to consume this project
-set(warning_guard "")
-if(NOT PROJECT_IS_TOP_LEVEL)
-  option(
-      {* lower(project_name) *}_INCLUDES_WITH_SYSTEM
-      "Use SYSTEM modifier for bare's includes, disabling warnings"
-      ON
-  )
-  mark_as_advanced({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
-  if({* lower(project_name) *}_INCLUDES_WITH_SYSTEM)
-    set(warning_guard SYSTEM)
-  endif()
-endif()
-"""
-
-[[files]]
-path = "include/{* lower(namespace) *}/{* lower(project_name) *}.hpp"
-content = """
-#pragma once
-
-#include <string>
-
-namespace {*lower(project_name)*} {
-
-auto greet() -> std::string;
-
-} // namespace {* lower(project_name) *}"""
-
-[[files]]
-path = "src/{* lower(project_name) *}.cpp"
-content = """
-#include "{* lower(namespace) *}/{* lower(project_name) *}.hpp"
-
-namespace {* lower(project_name) *} {
-
-auto greet() -> std::string {
-    return "Hello from {* lower(project_name) *}";
-}
-
-} // namespace {*lower(project_name)*}"""
-
-[[files]]
-path = "tests/CMakeLists.txt"
-content = """
-cmake_minimum_required(VERSION 3.27)
-
-project(
-    {* lower(project_name) *}Tests
-    LANGUAGES CXX
-)
-
-if(PROJECT_IS_TOP_LEVEL)
-    find_package({* lower(project_name) *} REQUIRED)
-    enable_testing()
-endif()
-
-include(FetchContent)
-FetchContent_Declare(
-    snitch
-    GIT_REPOSITORY https://github.com/cschreib/snitch.git
-    GIT_TAG        v1.2.2
-    FIND_PACKAGE_ARGS
-)
-FetchContent_MakeAvailable(snitch)
-
-add_executable({* lower(project_name) *}_tests
-    src/{* lower(project_name) *}_test.cpp
-)
-
-target_link_libraries({* lower(project_name) *}_tests PRIVATE {* lower(namespace) *}::{* lower(project_name) *} snitch::snitch)
-
-add_test(NAME {* lower(project_name) *}_tests COMMAND {* lower(project_name) *}_tests)
-
-# Enable test binary to find the DLL if building a shared lib
-if(BUILD_SHARED_LIBS)
-    set_tests_properties({* lower(project_name) *}_tests PROPERTIES
-        ENVIRONMENT_MODIFICATION "PATH=path_list_append:$<TARGET_FILE_DIR:{* lower(namespace) *}::{* lower(project_name) *}>/"
-    )
-endif()"""
-
-[[files]]
-path = "tests/src/{* lower(project_name) *}_test.cpp"
-content = """
-#include <snitch/snitch.hpp>
-#include <{* lower(namespace) *}/{* lower(project_name) *}.hpp>
-
-TEST_CASE("Test case", "[greeting]") {
-    REQUIRE({* lower(project_name) *}::greet() == "Hello from {* lower(project_name) *}");
 }
 """
