@@ -385,7 +385,7 @@ if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(cmake/install-rules.cmake)
 endif()
 
-if({* upper(project_name) *}__BUILD_TESTS)
+if({* upper(project_name) *}_BUILD_TESTS)
     include(CTest)
     add_subdirectory(tests)
 endif()

@@ -1,7 +1,7 @@
 vars = ["namespace", "project_name"]
 
 [[files]]
-path = ".clangformat"
+path = ".clang-format"
 content = """
 ---
 AccessModifierOffset: -4
