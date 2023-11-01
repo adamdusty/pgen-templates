@@ -242,6 +242,7 @@ add_library(
 )
 add_library({* lower(namespace) *}::{* lower(project_name) *} ALIAS {* lower(namespace) *}_{* lower(project_name) *})
 
+include(cmake/dependencies.cmake)
 include(cmake/compile-options.cmake)
 
 include(GenerateExportHeader)
@@ -376,6 +377,11 @@ content = """
         }
     ]
 }
+"""
+
+[[files]]
+path = "cmake/dependencies.cmake"
+content = """
 """
 
 [[files]]
