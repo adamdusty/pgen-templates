@@ -74,10 +74,6 @@ files:
     .vs/
     .vscode/
     build/
-    cmake/open-cpp-coverage.cmake
-    cmake-build-*/
-    prefix/
-    CMakeLists.txt.user
     CMakeUserPresets.json
 - path: cmake\compile-options.cmake
   content: "function(add_dev_compile_opts target)\n    target_compile_options(${target} PRIVATE\n        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:\n            -U_FORTIFY_SOURCE\n            -D_FORTIFY_SOURCE=3\n            -fstack-protector-strong\n            -fcf-protection=full\n            -fstack-clash-protection\n            -Wall\n            -Wextra\n            -Wpedantic\n            -Wconversion\n            -Wsign-conversion\n            -Wcast-qual\n            -Wformat=2\n            -Wundef\n            -Werror=float-equal\n            -Wshadow\n            -Wcast-align\n            -Wunused\n            -Wnull-dereference\n            -Wdouble-promotion\n            -Wimplicit-fallthrough\n            -Wextra-semi\n            -Woverloaded-virtual\n            -Wnon-virtual-dtor\n            -Wold-style-cast>\n            \n        $<$<CXX_COMPILER_ID:MSVC>:\n            /sdl\n            /guard:cf\n            /utf-8\n            /diagnostics:caret\n            /w14165\n            /w44242\n            /w44254\n            /w44263\n            /w34265\n            /w34287\n            /w44296\n            /w44365\n            /w44388\n            /w44464\n            /w14545\n            /w14546\n            /w14547\n            /w14549\n            /w14555\n            /w34619\n            /w34640\n            /w24826\n            /w14905\n            /w14906\n            /w14928\n            /w45038\n            /W4\n            /permissive-\n            /volatile:iso\n            /Zc:inline\n            /Zc:preprocessor\n            /Zc:enumTypes\n            /Zc:lambda\n            /Zc:__cplusplus\n            /Zc:externConstexpr\n            /Zc:throwingNew\n            /EHsc>\n    )\nendfunction()"
@@ -283,7 +279,7 @@ files:
             {
                 "name": "dev",
                 "configurePreset": "dev",
-                "configuration": "Debug",
+                "configuration": "debug",
                 "output": {
                     "outputOnFailure": true
                 }
@@ -325,8 +321,8 @@ files:
     include(FetchContent)
     FetchContent_Declare(
         snitch
-        GIT_REPOSITORY https://github.com/cschreib/snitch.git
-        GIT_TAG        v1.2.2
+        GIT_REPOSITORY https://github.com/snitch-org/snitch.git
+        GIT_TAG        v1.2.4
         GIT_SHALLOW    TRUE
         SYSTEM
         FIND_PACKAGE_ARGS # Use system package if installed
