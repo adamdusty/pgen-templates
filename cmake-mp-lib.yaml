@@ -8,76 +8,7 @@ directories:
   - include
   - include\{@ namespace @}
   - src
-  - tests
-  - tests\src
 files:
-  - path: .clang-format
-    content: |
-      ---
-      AccessModifierOffset: -4
-      AlignConsecutiveAssignments: true
-      AlignTrailingComments: true
-      AllowAllConstructorInitializersOnNextLine: true
-      AllowShortBlocksOnASingleLine: true
-      AllowShortCaseLabelsOnASingleLine: false
-      AllowShortFunctionsOnASingleLine: Inline
-      AllowShortIfStatementsOnASingleLine: false
-      AllowShortLambdasOnASingleLine: Inline
-      AllowShortLoopsOnASingleLine: false
-      AlwaysBreakBeforeMultilineStrings: false
-      AlwaysBreakTemplateDeclarations: Yes
-      BinPackArguments: false
-      BinPackParameters: false
-      BreakBeforeBraces: Attach
-      BreakBeforeTernaryOperators: true
-      BreakConstructorInitializers: AfterColon
-      ColumnLimit: 120
-      CompactNamespaces: false
-      IndentWidth: 4
-      PointerAlignment: Left
-      SortIncludes: true
-      SortUsingDeclarations: true
-      SpaceAfterCStyleCast: false
-      SpaceAfterLogicalNot: false
-      SpaceAfterTemplateKeyword: false
-      SpaceBeforeCpp11BracedList: false
-      SpaceBeforeInheritanceColon: true
-      SpaceBeforeParens: Never
-      SpaceBeforeRangeBasedForLoopColon: false
-      SpaceInEmptyParentheses: false
-      SpacesInAngles: false
-      SpacesInCStyleCastParentheses: false
-      SpacesInContainerLiterals: false
-      SpacesInParentheses: false
-      SpacesInSquareBrackets: false
-
-  - path: .clang-tidy
-    content: |
-      Checks: "*,
-        -abseil-*,
-        -altera-*,
-        -android-*,
-        -fuchsia-*,
-        -google-*,
-        -llvm*,
-        -zircon-*,
-        -readability-else-after-return,
-        -readability-static-accessed-through-instance,
-        -readability-avoid-const-params-in-decls,
-        -readability-magic-numbers,
-        -readability-identifier-length,
-        -cppcoreguidelines-non-private-member-variables-in-classes,
-        -cppcoreguidelines-avoid-magic-numbers,
-        -misc-non-private-member-variables-in-classes,
-        -modernize-use-nodiscard"
-  - path: .gitignore
-    content: |
-      .idea/
-      .vs/
-      .vscode/
-      build/
-      CMakeUserPresets.json
-
   - path: cmake\compile-options.cmake
     content: |
       function(add_dev_compile_opts target)
@@ -221,12 +152,6 @@ files:
   - path: cmake\options.cmake
   - path: cmake\warning-guard.cmake
     content: |
-      # ---- Warning guard ----
-
-      # target_include_directories with the SYSTEM modifier will request the compiler
-      # to omit warnings from the provided paths, if the compiler supports that
-      # This is to provide a user experience similar to find_package when
-      # add_subdirectory or FetchContent is used to consume this project
       set(warning_guard "")
       if(NOT PROJECT_IS_TOP_LEVEL)
           set(warning_guard SYSTEM)
@@ -234,7 +159,7 @@ files:
 
   - path: CMakeLists.txt
     content: |
-      cmake_minimum_required(VERSION 3.29)
+      cmake_minimum_required(VERSION 3.28)
 
       project(
           {@ project_name @}
@@ -275,7 +200,7 @@ files:
           "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
       )
 
-      target_include_directories({@ namespace @}_{@ project_name @}
+      target_include_directories({@ namespace @}_{@ project_name @} SYSTEM
           PUBLIC
               "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
       )
@@ -303,61 +228,6 @@ files:
         include(cmake/install-rules.cmake)
       endif()
 
-      # Enable testing
-      if(BUILD_TESTING)
-          include(CTest)
-          add_subdirectory(tests)
-      endif()
-  - path: CMakePresets.json
-    content: |
-      {
-          "version": 6,
-          "cmakeMinimumRequired": {
-              "major": 3,
-              "minor": 27,
-              "patch": 0
-          },
-          "configurePresets": [
-              {
-                  "name": "base",
-                  "hidden": true,
-                  "cacheVariables": {
-                      "CMAKE_CXX_EXTENSIONS": "OFF",
-                      "CMAKE_CXX_STANDARD": "23",
-                      "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
-                  }
-              },
-              {
-                  "name": "dev",
-                  "binaryDir": "build/dev",
-                  "inherits": [
-                      "base"
-                  ],
-                  "cacheVariables": {
-                      "CMAKE_BUILD_TYPE": "debug",
-                      "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-                      "CMAKE_COLOR_DIAGNOSTICS": "ON",
-                      "BUILD_TESTING": "ON"
-                  }
-              }
-          ],
-          "buildPresets": [
-              {
-                  "name": "dev",
-                  "configurePreset": "dev"
-              }
-          ],
-          "testPresets": [
-              {
-                  "name": "dev",
-                  "configurePreset": "dev",
-                  "configuration": "debug",
-                  "output": {
-                      "outputOnFailure": true
-                  }
-              }
-          ]
-      }
   - path: include\{@ namespace @}\{@ project_name @}.hpp
     content: |
       #pragma once
@@ -365,67 +235,16 @@ files:
       #include <cstdint>
 
       namespace {@ namespace @} {
+              
       auto get_version() -> std::uint64_t;
+
       }
   - path: src\{@ project_name @}.cpp
     content: |
       #include "{@ namespace @}/{@ project_name @}.hpp"
 
       namespace {@ namespace @} {
+          
       auto get_version() -> std::uint64_t{ return 1; }
-      }
-  - path: tests\CMakeLists.txt
-    content: |
-      cmake_minimum_required(VERSION 3.27)
 
-      project(
-          {@ project_name @}Tests
-          LANGUAGES CXX
-      )
-
-      # If test project is built independently, find the project package
-      if(PROJECT_IS_TOP_LEVEL)
-          find_package({@ project_name @} REQUIRED)
-          enable_testing()
-      endif()
-
-      # Get the testing library
-      include(FetchContent)
-      FetchContent_Declare(
-          snitch
-          GIT_REPOSITORY https://github.com/snitch-org/snitch.git
-          GIT_TAG        v1.2.4
-          SYSTEM
-      )
-      FetchContent_MakeAvailable(snitch)
-
-      # Add test exe
-      add_executable({@ project_name @}_tests)
-
-      # Add test sources
-      target_sources({@ project_name @}_tests PRIVATE
-          src/{@ project_name @}_tests.cpp
-      )
-
-      # Link libs
-      target_link_libraries({@ project_name @}_tests PRIVATE {@ namespace @}::{@ project_name @} snitch::snitch)
-
-      # Add test
-      add_test(NAME {@ project_name @}_tests COMMAND {@ project_name @}_tests)
-
-      # Enable test binary to find the DLL if building a shared lib
-      if(BUILD_SHARED_LIBS)
-          set_tests_properties({@ project_name @}_tests PROPERTIES
-              ENVIRONMENT_MODIFICATION
-                  "PATH=path_list_append:$<TARGET_FILE_DIR:{@ namespace @}::{@ project_name @}>;PATH=path_list_append:$<TARGET_FILE_DIR:snitch::snitch>"
-          )
-      endif()
-
-  - path: tests\src\{@ project_name @}_tests.cpp
-    content: |
-      #include <snitch/snitch.hpp>
-      #include <{@ namespace @}/{@ project_name @}.hpp>
-
-      TEST_CASE("Test case", "[greeting]") {
-          REQUIRE({@ namespace @} ::get_version() == 1);
       }

@@ -1,0 +1,179 @@
+variables:
+  - identifier: namespace
+    display_name: Namespace
+  - identifier: project_name
+    display_name: Project Name
+directories:
+  - cmake
+  - src
+files:
+  - path: cmake\compile-options.cmake
+    content: |
+      function(add_dev_compile_opts target)
+          target_compile_options(${target} PRIVATE
+              $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+                  $<$<CONFIG:Release>:-U_FORTIFY_SOURCE>
+                  $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=3>
+                  -fstack-protector-strong
+                  -fcf-protection=full
+                  -fstack-clash-protection
+                  -Wall
+                  -Wextra
+                  -Wpedantic
+                  -Wconversion
+                  -Wsign-conversion
+                  -Wcast-qual
+                  -Wformat=2
+                  -Wundef
+                  -Werror=float-equal
+                  -Wshadow
+                  -Wcast-align
+                  -Wunused
+                  -Wnull-dereference
+                  -Wdouble-promotion
+                  -Wimplicit-fallthrough
+                  -Wextra-semi
+                  -Woverloaded-virtual
+                  -Wnon-virtual-dtor
+                  -Wold-style-cast>
+                  
+              $<$<CXX_COMPILER_ID:MSVC>:
+                  /sdl
+                  /guard:cf
+                  /utf-8
+                  /diagnostics:caret
+                  /w14165
+                  /w44242
+                  /w44254
+                  /w44263
+                  /w34265
+                  /w34287
+                  /w44296
+                  /w44365
+                  /w44388
+                  /w44464
+                  /w14545
+                  /w14546
+                  /w14547
+                  /w14549
+                  /w14555
+                  /w34619
+                  /w34640
+                  /w24826
+                  /w14905
+                  /w14906
+                  /w14928
+                  /w45038
+                  /W4
+                  /permissive-
+                  /volatile:iso
+                  /Zc:inline
+                  /Zc:preprocessor
+                  /Zc:enumTypes
+                  /Zc:lambda
+                  /Zc:__cplusplus
+                  /Zc:externConstexpr
+                  /Zc:throwingNew
+                  /EHsc>
+          )
+      endfunction()
+  - path: cmake\dependencies.cmake
+  - path: cmake\install-rules.cmake
+    content: |
+      install(
+          TARGETS {@ project_name @}
+          RUNTIME COMPONENT {@ project_name @}_Runtime
+      )
+
+      # Include CPack
+      if(PROJECT_IS_TOP_LEVEL)
+        include(CPack)
+      endif()
+  - path: cmake\options.cmake
+  - path: CMakeLists.txt
+    content: |
+      cmake_minimum_required(VERSION 3.28)
+
+      project(
+          {@ project_name @}
+          VERSION 0.1.0
+          DESCRIPTION "A short description"
+          LANGUAGES CXX
+      )
+
+      # Include utilities
+      include(cmake/options.cmake)
+      include(cmake/compile-options.cmake)
+      include(cmake/dependencies.cmake)
+
+      # Declare library
+      add_library({@ project_name @}_lib)
+
+      # Add include directory
+      target_include_directories(
+          {@ project_name @}_lib
+          PUBLIC
+          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>"
+      )
+
+      # Link deps
+      # target_link_libraries({@ project_name @}_lib PUBLIC)
+
+      # Add sources
+      target_sources({@ project_name @}_lib PRIVATE
+          src/lib.cpp
+      )
+
+      # Declare executable
+      add_executable({@ project_name @})
+
+      # Add sources
+      target_sources({@ project_name @} PRIVATE
+          src/main.cpp
+      )
+
+      # Include and link dependencies
+      target_link_libraries({@ project_name @} PRIVATE {@ project_name @}_lib)
+
+      # Add compile options
+      add_dev_compile_opts({@ project_name @})
+
+
+      # Set properties
+      set_target_properties(
+          {@ project_name @} PROPERTIES
+          OUTPUT_NAME {@ project_name @}
+      )
+
+      # Install rules
+      if(NOT CMAKE_SKIP_INSTALL_RULES)
+        include(cmake/install-rules.cmake)
+      endif()
+
+  - path: src\lib.cpp
+    content: |
+      #include "lib.hpp"
+
+      namespace {@ namespace @}{
+
+      auto get_version() -> uint32_t { return 1; }
+          
+      }
+  - path: src\lib.hpp
+    content: |
+      #pragma once
+
+      #include <cstdint>
+
+      namespace {@ namespace @}{
+
+      auto get_version() -> uint32_t;
+          
+      }
+  - path: src\main.cpp
+    content: |
+      #include "lib.hpp"
+
+      auto main(int /* argc */, char* /* argv */[]) -> int {
+          return {@ namespace @}::get_version();
+      }

@@ -1,0 +1,221 @@
+variables:
+  - identifier: namespace
+    display_name: Namespace
+directories:
+  - docs
+  - tests
+files:
+  - path: .clang-format
+    content: |
+      ---
+      AccessModifierOffset: -4
+      AlignConsecutiveAssignments: true
+      AlignAfterOpenBracket: BlockIndent
+      AlignTrailingComments: true
+      AllowAllConstructorInitializersOnNextLine: true
+      AllowAllParametersOfDeclarationOnNextLine: false
+      AllowShortBlocksOnASingleLine: true
+      AllowShortCaseLabelsOnASingleLine: false
+      AllowShortFunctionsOnASingleLine: Inline
+      AllowShortIfStatementsOnASingleLine: false
+      AllowShortLambdasOnASingleLine: Inline
+      AllowShortLoopsOnASingleLine: false
+      AlwaysBreakBeforeMultilineStrings: false
+      AlwaysBreakTemplateDeclarations: Yes
+      BinPackArguments: false
+      BinPackParameters: false
+      BreakBeforeBraces: Attach
+      BreakBeforeTernaryOperators: true
+      BreakConstructorInitializers: AfterColon
+      ColumnLimit: 120
+      CompactNamespaces: false
+      IndentWidth: 4
+      PointerAlignment: Left
+      SortIncludes: true
+      SortUsingDeclarations: true
+      SpaceAfterCStyleCast: false
+      SpaceAfterLogicalNot: false
+      SpaceAfterTemplateKeyword: false
+      SpaceBeforeCpp11BracedList: false
+      SpaceBeforeInheritanceColon: true
+      SpaceBeforeParens: Never
+      SpaceBeforeRangeBasedForLoopColon: false
+      SpaceInEmptyParentheses: false
+      SpacesInAngles: false
+      SpacesInCStyleCastParentheses: false
+      SpacesInContainerLiterals: false
+      SpacesInParentheses: false
+      SpacesInSquareBrackets: false
+  - path: .clang-tidy
+    content: |
+      Checks: "*,
+        -abseil-*,
+        -altera-*,
+        -android-*,
+        -fuchsia-*,
+        -google-*,
+        -llvm*,
+        -zircon-*,
+        -readability-else-after-return,
+        -readability-static-accessed-through-instance,
+        -readability-avoid-const-params-in-decls,
+        -readability-magic-numbers,
+        -readability-identifier-length,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -cppcoreguidelines-avoid-magic-numbers,
+        -cppcoreguidelines-pro-type-reinterpret-cast,
+        -misc-non-private-member-variables-in-classes,
+        -modernize-use-nodiscard,
+        -bugprone-easily-swappable-parameters"
+  - path: .clangd
+    content: |
+      CompileFlags:
+          Add: [-D__cpp_concepts=202002L]
+          Remove: [-fno-keep-inline-dllexport]
+  - path: .gitignore
+    content: |
+      .idea/
+      .vs/
+      .vscode/
+      CMakeUserPresets.json
+      notes.txt
+  - path: .justfile
+    content: |
+      set windows-shell := ["pwsh.exe", "-NoLogo", "-NoProfileLoadTime", "-Command"]
+
+      configure:
+          cmake --preset dev -G Ninja
+
+      build:
+          cmake --build --preset dev
+
+      clean:
+          cmake --build --preset dev --target clean
+
+      test:
+          ctest --preset dev
+
+  - path: CMakeLists.txt
+    content: |
+      cmake_minimum_required(VERSION 3.28)
+
+      project({@ namespace @})
+
+      # Add subdirectories
+      # add_subdirectory(proj1)
+
+      if(BUILD_TESTING)
+          include(CTest)
+          enable_testing()
+          add_subdirectory(tests)
+      endif()
+  - path: CMakePresets.json
+    content: |
+      {
+          "version": 6,
+          "cmakeMinimumRequired": {
+              "major": 3,
+              "minor": 28,
+              "patch": 0
+          },
+          "configurePresets": [
+              {
+                  "name": "base",
+                  "hidden": true,
+                  "cacheVariables": {
+                      "CMAKE_CXX_EXTENSIONS": "OFF",
+                      "CMAKE_CXX_STANDARD": "23",
+                      "CMAKE_CXX_SCAN_FOR_MODULES": "OFF"
+                  }
+              },
+              {
+                  "name": "dev",
+                  "binaryDir": "build/dev",
+                  "inherits": [
+                      "base"
+                  ],
+                  "cacheVariables": {
+                      "CMAKE_BUILD_TYPE": "debug",
+                      "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                      "CMAKE_COLOR_DIAGNOSTICS": "ON",
+                      "BUILD_TESTING": "ON"
+                  }
+              },
+              {
+                  "name": "release",
+                  "binaryDir": "build/release",
+                  "inherits": [
+                      "base"
+                  ],
+                  "cacheVariables": {
+                      "CMAKE_BUILD_TYPE": "release",
+                      "CMAKE_COLOR_DIAGNOSTICS": "ON"
+                  }
+              }
+          ],
+          "buildPresets": [
+              {
+                  "name": "dev",
+                  "configurePreset": "dev"
+              },
+              {
+                  "name": "release",
+                  "configurePreset": "release"
+              }
+          ],
+          "testPresets": [
+              {
+                  "name": "dev",
+                  "configurePreset": "dev",
+                  "configuration": "debug",
+                  "output": {
+                      "outputOnFailure": true
+                  }
+              }
+          ]
+      }
+  - path: tests\CMakeLists.txt
+    content: |
+      cmake_minimum_required(VERSION 3.28)
+
+      project(
+          {@ namespace @}_tests
+          LANGUAGES CXX
+      )
+
+      include(FetchContent)
+
+      FetchContent_Declare(
+          snitch
+          GIT_REPOSITORY  https://github.com/snitch-org/snitch.git
+          GIT_TAG         v1.2.5
+          SYSTEM
+      )
+
+      FetchContent_MakeAvailable(snitch)
+
+      add_executable({@ namespace @}_tests)
+
+      target_sources({@ namespace @}_tests PRIVATE
+          # Add sources
+      )
+
+      target_link_libraries({@ namespace @}_tests
+          PRIVATE
+              snitch::snitch
+              # Link individual project libs
+      )
+
+      add_test(NAME {@ namespace @}_tests COMMAND {@ namespace @}_tests)
+
+
+      # Required for testing with shared libs on windows
+      if(BUILD_SHARED_LIBS)
+
+      set_tests_properties(
+          {@ namespace @}_tests
+          PROPERTIES
+          "PATH=path_list_append:$<TARGET_FILE_DIR:snitch::snitch>"
+      )
+
+      endif()
