@@ -6,10 +6,10 @@ variables:
 directories:
   - cmake
   - include
-  - include\{@ namespace @}
+  - include/{@ namespace @}
   - src
   - tests
-  - tests\src
+  - tests/src
 files:
   - path: .clang-format
     content: |
@@ -78,7 +78,7 @@ files:
       build/
       CMakeUserPresets.json
 
-  - path: cmake\compile-options.cmake
+  - path: cmake/compile-options.cmake
     content: |
       function(add_dev_compile_opts target)
           target_compile_options(${target} PRIVATE
@@ -148,11 +148,11 @@ files:
                   /EHsc>
           )
       endfunction()
-  - path: cmake\dependencies.cmake
-  - path: cmake\install-config.cmake
+  - path: cmake/dependencies.cmake
+  - path: cmake/install-config.cmake
     content: |
       include("${CMAKE_CURRENT_LIST_DIR}/{@ project_name @}Targets.cmake")
-  - path: cmake\install-rules.cmake
+  - path: cmake/install-rules.cmake
     content: |
       if(PROJECT_IS_TOP_LEVEL)
         set(
@@ -218,8 +218,8 @@ files:
       if(PROJECT_IS_TOP_LEVEL)
         include(CPack)
       endif()
-  - path: cmake\options.cmake
-  - path: cmake\warning-guard.cmake
+  - path: cmake/options.cmake
+  - path: cmake/warning-guard.cmake
     content: |
       # ---- Warning guard ----
 
@@ -358,7 +358,7 @@ files:
               }
           ]
       }
-  - path: include\{@ namespace @}\{@ project_name @}.hpp
+  - path: include/{@ namespace @}/{@ project_name @}.hpp
     content: |
       #pragma once
 
@@ -367,14 +367,14 @@ files:
       namespace {@ namespace @} {
       auto get_version() -> std::uint64_t;
       }
-  - path: src\{@ project_name @}.cpp
+  - path: src/{@ project_name @}.cpp
     content: |
       #include "{@ namespace @}/{@ project_name @}.hpp"
 
       namespace {@ namespace @} {
       auto get_version() -> std::uint64_t{ return 1; }
       }
-  - path: tests\CMakeLists.txt
+  - path: tests/CMakeLists.txt
     content: |
       cmake_minimum_required(VERSION 3.27)
 
@@ -421,7 +421,7 @@ files:
           )
       endif()
 
-  - path: tests\src\{@ project_name @}_tests.cpp
+  - path: tests/src/{@ project_name @}_tests.cpp
     content: |
       #include <snitch/snitch.hpp>
       #include <{@ namespace @}/{@ project_name @}.hpp>
