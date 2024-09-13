@@ -1,8 +1,8 @@
 variables:
   - identifier: namespace
-    display_name: Namespace
+    display_name: namespace
   - identifier: project_name
-    display_name: Project Name
+    display_name: project name
 directories:
   - cmake
   - include
@@ -70,6 +70,7 @@ files:
         -cppcoreguidelines-avoid-magic-numbers,
         -misc-non-private-member-variables-in-classes,
         -modernize-use-nodiscard"
+
   - path: .gitignore
     content: |
       .idea/
@@ -80,78 +81,78 @@ files:
 
   - path: cmake\compile-options.cmake
     content: |
-      function(add_dev_compile_opts target)
-          target_compile_options(${target} PRIVATE
-              $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-                  $<$<CONFIG:Release>:-U_FORTIFY_SOURCE>
-                  $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=3>
-                  -fstack-protector-strong
-                  -fcf-protection=full
-                  -fstack-clash-protection
-                  -Wall
-                  -Wextra
-                  -Wpedantic
-                  -Wconversion
-                  -Wsign-conversion
-                  -Wcast-qual
-                  -Wformat=2
-                  -Wundef
-                  -Werror=float-equal
-                  -Wshadow
-                  -Wcast-align
-                  -Wunused
-                  -Wnull-dereference
-                  -Wdouble-promotion
-                  -Wimplicit-fallthrough
-                  -Wextra-semi
-                  -Woverloaded-virtual
-                  -Wnon-virtual-dtor
-                  -Wold-style-cast>
-                  
-              $<$<CXX_COMPILER_ID:MSVC>:
-                  /sdl
-                  /guard:cf
-                  /utf-8
-                  /diagnostics:caret
-                  /w14165
-                  /w44242
-                  /w44254
-                  /w44263
-                  /w34265
-                  /w34287
-                  /w44296
-                  /w44365
-                  /w44388
-                  /w44464
-                  /w14545
-                  /w14546
-                  /w14547
-                  /w14549
-                  /w14555
-                  /w34619
-                  /w34640
-                  /w24826
-                  /w14905
-                  /w14906
-                  /w14928
-                  /w45038
-                  /W4
-                  /permissive-
-                  /volatile:iso
-                  /Zc:inline
-                  /Zc:preprocessor
-                  /Zc:enumTypes
-                  /Zc:lambda
-                  /Zc:__cplusplus
-                  /Zc:externConstexpr
-                  /Zc:throwingNew
-                  /EHsc>
-          )
-      endfunction()
+      set({@ project_name @}_COMPILE_OPTIONS
+      $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+          $<$<CONFIG:Release>:-U_FORTIFY_SOURCE>
+          $<$<CONFIG:Release>:-D_FORTIFY_SOURCE=3>
+          -fstack-protector-strong
+          -fcf-protection=full
+          -fstack-clash-protection
+          -Wall
+          -Wextra
+          -Wpedantic
+          -Wconversion
+          -Wsign-conversion
+          -Wcast-qual
+          -Wformat=2
+          -Wundef
+          -Werror=float-equal
+          -Wshadow
+          -Wcast-align
+          -Wunused
+          -Wnull-dereference
+          -Wdouble-promotion
+          -Wimplicit-fallthrough
+          -Wextra-semi
+          -Woverloaded-virtual
+          -Wnon-virtual-dtor
+          -Wold-style-cast>
+          
+      $<$<CXX_COMPILER_ID:MSVC>:
+          /sdl
+          /guard:cf
+          /utf-8
+          /diagnostics:caret
+          /w14165
+          /w44242
+          /w44254
+          /w44263
+          /w34265
+          /w34287
+          /w44296
+          /w44365
+          /w44388
+          /w44464
+          /w14545
+          /w14546
+          /w14547
+          /w14549
+          /w14555
+          /w34619
+          /w34640
+          /w24826
+          /w14905
+          /w14906
+          /w14928
+          /w45038
+          /W4
+          /permissive-
+          /volatile:iso
+          /Zc:inline
+          /Zc:preprocessor
+          /Zc:enumTypes
+          /Zc:lambda
+          /Zc:__cplusplus
+          /Zc:externConstexpr
+          /Zc:throwingNew
+          /EHsc>
+      )
+
   - path: cmake\dependencies.cmake
   - path: cmake\install-config.cmake
     content: |
       include("${CMAKE_CURRENT_LIST_DIR}/{@ project_name @}Targets.cmake")
+
   - path: cmake\install-rules.cmake
     content: |
       if(PROJECT_IS_TOP_LEVEL)
@@ -173,7 +174,7 @@ files:
           LIBRARY COMPONENT {@ project_name @}_Runtime
           NAMELINK_COMPONENT {@ project_name @}_Development
           ARCHIVE COMPONENT {@ project_name @}_Development
-          INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+          FILE_SET {@ project_name @}_headers
       )
 
       # Write package file for installations
@@ -190,7 +191,6 @@ files:
       )
       mark_as_advanced({@ project_name @}_INSTALL_CMAKEDIR)
 
-      # Install config file to the install directory
       install(
           FILES cmake/install-config.cmake
           DESTINATION "${{@ project_name @}_INSTALL_CMAKEDIR}"
@@ -199,14 +199,12 @@ files:
       )
 
       # Install ConfigVersion file
-      # More package install info
       install(
           FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
           DESTINATION "${{@ project_name @}_INSTALL_CMAKEDIR}"
           COMPONENT {@ project_name @}_Development
       )
 
-      # Install the dev component from targets defined above (I think)
       install(
           EXPORT {@ project_name @}Targets
           NAMESPACE {@ namespace @}::
@@ -218,6 +216,7 @@ files:
       if(PROJECT_IS_TOP_LEVEL)
         include(CPack)
       endif()
+
   - path: cmake\options.cmake
   - path: cmake\warning-guard.cmake
     content: |
@@ -258,33 +257,26 @@ files:
       generate_export_header(
           {@ namespace @}_{@ project_name @}
           BASE_NAME {@ project_name @}
-          EXPORT_FILE_NAME include/{@ namespace @}/export.hpp
+          EXPORT_FILE_NAME ${CMAKE_CURRENT_SOURCE_DIR}/include/{@ namespace @}/export.hpp
           CUSTOM_CONTENT_FROM_VARIABLE pragma_suppress_c4251
       )
 
       # Add sources
-      target_sources({@ namespace @}_{@ project_name @} PRIVATE
-          src/{@ project_name @}.cpp
-      )
-
-      # Add include directory
-      # warning_guard adds SYSTEM modifier if the project isn't top level
-      target_include_directories(
-          {@ namespace @}_{@ project_name @} ${warning_guard}
+      target_sources({@ namespace @}_{@ project_name @}
           PUBLIC
-          "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+              FILE_SET    {@ project_name @}_headers
+              TYPE        HEADERS
+              BASE_DIRS   include
+              FILES
+                  "include/{@ namespace @}/{@ project_name @}.hpp"
+          PRIVATE
+              "src/{@ project_name @}.cpp"
       )
-
-      target_include_directories({@ namespace @}_{@ project_name @}
-          PUBLIC
-              "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
-      )
-
       # Include and link dependencies
       #target_link_libraries({@ namespace @}_{@ project_name @})
 
       # Add compile options
-      add_dev_compile_opts({@ namespace @}_{@ project_name @})
+      target_compile_options({@ namespace @}_{@ project_name @} PRIVATE ${{@ project_name @}_COMPILE_OPTIONS})
 
 
       # Set properties
@@ -308,6 +300,7 @@ files:
           include(CTest)
           add_subdirectory(tests)
       endif()
+
   - path: CMakePresets.json
     content: |
       {
@@ -358,6 +351,7 @@ files:
               }
           ]
       }
+
   - path: include\{@ namespace @}\{@ project_name @}.hpp
     content: |
       #pragma once
@@ -367,13 +361,20 @@ files:
       namespace {@ namespace @} {
       auto get_version() -> std::uint64_t;
       }
+
   - path: src\{@ project_name @}.cpp
     content: |
       #include "{@ namespace @}/{@ project_name @}.hpp"
 
-      namespace {@ namespace @} {
-      auto get_version() -> std::uint64_t{ return 1; }
+      namespace {
+      @ namespace @
       }
+      {
+          auto get_version() -> std::uint64_t {
+              return 1;
+          }
+      } // namespace {@ namespace @}
+
   - path: tests\CMakeLists.txt
     content: |
       cmake_minimum_required(VERSION 3.27)
@@ -394,7 +395,7 @@ files:
       FetchContent_Declare(
           snitch
           GIT_REPOSITORY https://github.com/snitch-org/snitch.git
-          GIT_TAG        v1.2.4
+          GIT_TAG        v1.2.5
           SYSTEM
       )
       FetchContent_MakeAvailable(snitch)
@@ -415,17 +416,20 @@ files:
 
       # Enable test binary to find the DLL if building a shared lib
       if(BUILD_SHARED_LIBS)
+          set(DLL_DIRS "$<TARGET_RUNTIME_DLL_DIRS:{@ project_name @}_tests>")
+          set(ENV_OP "PATH=path_list_append:")
+
           set_tests_properties({@ project_name @}_tests PROPERTIES
               ENVIRONMENT_MODIFICATION
-                  "PATH=path_list_append:$<TARGET_FILE_DIR:{@ namespace @}::{@ project_name @}>;PATH=path_list_append:$<TARGET_FILE_DIR:snitch::snitch>"
+                  "${ENV_OP}$<JOIN:${DLL_DIRS},$<SEMICOLON>${ENV_OP}>"
           )
       endif()
 
-  - path: tests\src\{@ project_name @}_tests.cpp
+  - path: tests\src\fake_tests.cpp
     content: |
       #include <snitch/snitch.hpp>
       #include <{@ namespace @}/{@ project_name @}.hpp>
 
       TEST_CASE("Test case", "[greeting]") {
-          REQUIRE({@ namespace @} ::get_version() == 1);
+          REQUIRE({ @ namespace @ } ::get_version() == 1);
       }
