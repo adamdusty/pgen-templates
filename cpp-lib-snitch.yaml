@@ -366,10 +366,7 @@ files:
     content: |
       #include "{@ namespace @}/{@ project_name @}.hpp"
 
-      namespace {
-      @ namespace @
-      }
-      {
+      namespace {@ namespace @} {
           auto get_version() -> std::uint64_t {
               return 1;
           }
@@ -425,11 +422,11 @@ files:
           )
       endif()
 
-  - path: tests\src\fake_tests.cpp
+  - path: tests\src\{@ project_name @}_tests.cpp
     content: |
       #include <snitch/snitch.hpp>
       #include <{@ namespace @}/{@ project_name @}.hpp>
 
       TEST_CASE("Test case", "[greeting]") {
-          REQUIRE({ @ namespace @ } ::get_version() == 1);
+          REQUIRE({@ namespace @} ::get_version() == 1);
       }

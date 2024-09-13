@@ -1,9 +1,6 @@
 #include "{@ namespace @}/{@ project_name @}.hpp"
 
-namespace {
-@ namespace @
-}
-{
+namespace {@ namespace @} {
     auto get_version() -> std::uint64_t {
         return 1;
     }
