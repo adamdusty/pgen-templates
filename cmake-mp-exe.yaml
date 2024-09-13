@@ -7,7 +7,7 @@ directories:
   - cmake
   - src
 files:
-  - path: cmake\compile-options.cmake
+  - path: cmake/compile-options.cmake
     content: |
       function(add_dev_compile_opts target)
           target_compile_options(${target} PRIVATE
@@ -77,8 +77,8 @@ files:
                   /EHsc>
           )
       endfunction()
-  - path: cmake\dependencies.cmake
-  - path: cmake\install-rules.cmake
+  - path: cmake/dependencies.cmake
+  - path: cmake/install-rules.cmake
     content: |
       install(
           TARGETS {@ project_name @}
@@ -89,7 +89,7 @@ files:
       if(PROJECT_IS_TOP_LEVEL)
         include(CPack)
       endif()
-  - path: cmake\options.cmake
+  - path: cmake/options.cmake
   - path: CMakeLists.txt
     content: |
       cmake_minimum_required(VERSION 3.28)
@@ -150,7 +150,7 @@ files:
         include(cmake/install-rules.cmake)
       endif()
 
-  - path: src\lib.cpp
+  - path: src/lib.cpp
     content: |
       #include "lib.hpp"
 
@@ -159,7 +159,7 @@ files:
       auto get_version() -> uint32_t { return 1; }
           
       }
-  - path: src\lib.hpp
+  - path: src/lib.hpp
     content: |
       #pragma once
 
@@ -170,7 +170,7 @@ files:
       auto get_version() -> uint32_t;
           
       }
-  - path: src\main.cpp
+  - path: src/main.cpp
     content: |
       #include "lib.hpp"
 
